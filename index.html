@@ -1,0 +1,490 @@
+<!doctype html>
+<html lang="id">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<title>APK BUG</title>
+<style>
+/* Nonaktifkan blok seleksi teks */
+  * {
+    user-select: none;
+    -webkit-user-select: none;
+    -ms-user-select: none;
+  }
+
+:root{ --accent:#ff8a00; --muted:#c9b9d6; --success:#27c48d; }
+*{box-sizing:border-box}
+html,body{height:100%;margin:0;font-family:Inter,Segoe UI,Arial,sans-serif;color:#fff;background:#0b0910}
+body{
+  background:
+    radial-gradient(1200px 500px at 50% -10%, rgba(255,138,0,.06), transparent 40%),
+    radial-gradient(800px 600px at -10% 10%, rgba(123,97,255,.08), transparent 40%),
+    linear-gradient(180deg,#07040a 0%, #140a13 60%);
+  animation: bodyfade .5s ease-out;
+}
+@keyframes bodyfade{from{opacity:.0;transform:translateY(4px)}to{opacity:1;transform:none}}
+body.lock{overflow:hidden}
+
+/* ===== LOGIN ===== */
+.auth-wrap{min-height:100vh; display:flex; align-items:center; justify-content:center; padding:32px 16px;}
+.auth-card{
+  width:min(440px, 94vw); border-radius:18px; padding:20px;
+  background: linear-gradient(180deg, rgba(255,255,255,.08), rgba(255,255,255,.02));
+  border:1px solid rgba(255,255,255,.12);
+  box-shadow:0 24px 60px rgba(0,0,0,.5); backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px); animation: cardin .45s ease both;
+}
+@keyframes cardin{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+.auth-title{display:flex;align-items:center;gap:10px;margin-bottom:4px}
+.auth-title h1{margin:0;font-size:22px;letter-spacing:.2px}
+.auth-sub{margin:0 0 14px;color:var(--muted);font-size:13px}
+.auth-row{display:flex;flex-direction:column;gap:6px;margin:10px 0}
+.auth-row label{font-size:12px;color:var(--muted)}
+.auth-row input{
+  padding:12px;border-radius:12px;border:1px solid rgba(255,255,255,.14);
+  background:rgba(0,0,0,.25);color:#fff;outline:none;transition:border .2s, box-shadow .2s;
+}
+.auth-row input:focus{border-color:rgba(255,255,255,.28);box-shadow:0 0 0 4px rgba(255,255,255,.06)}
+.btn{border:0;border-radius:12px;padding:12px 14px;font-weight:800;cursor:pointer;transition: transform .06s ease, box-shadow .2s ease}
+.btn.primary{background:linear-gradient(90deg,var(--accent),#ffc37a);color:#170b00;box-shadow:0 10px 24px rgba(255,138,0,.15)}
+.btn:active{transform:translateY(1px)}
+.auth-actions{display:flex;gap:8px;margin-top:12px}
+.auth-error{margin-top:10px;color:#ffd2d2;background:rgba(255,77,79,.12);border:1px solid rgba(255,77,79,.25);padding:10px;border-radius:12px;display:none;font-size:12px}
+.auth-foot{margin-top:10px;font-size:12px;color:var(--muted)}
+
+/* ===== LOADING (post-login 3 detik) ===== */
+.loading-wrap{min-height:100vh; display:none; align-items:center; justify-content:center; padding:24px 16px;}
+.loading-card{
+  width:min(420px, 92vw); border-radius:16px; padding:16px;
+  background:linear-gradient(180deg, rgba(255,255,255,.08), rgba(255,255,255,.02));
+  border:1px solid rgba(255,255,255,.12);
+  box-shadow:0 30px 70px rgba(0,0,0,.55); backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px); text-align:center; animation: cardin .4s ease both;
+}
+.loading-img{
+  width:100%; aspect-ratio:16/9; object-fit:cover; object-position:center; border-radius:14px;
+  box-shadow:0 10px 30px rgba(0,0,0,.45);
+}
+.loading-text{margin-top:12px;color:#e9e2f5}
+.loading-sub{font-size:12px;color:var(--muted);margin-top:4px}
+
+/* ===== APP ===== */
+.app{max-width:480px;margin:0 auto;min-height:100vh;position:relative;padding:18px 16px 110px;display:none}
+.top-banner{position: relative;height: 130px;border-radius: 16px;overflow: hidden;margin-bottom: 16px;
+  box-shadow:0 20px 40px rgba(0,0,0,.45), inset 0 0 0 1px rgba(255,255,255,.06)}
+.banner-img{width:100%;height:100%;object-fit:cover;object-position:center;transform:translateY(0) scale(1.05);transition:transform .25s ease-out;will-change: transform}
+.top-banner::after{content:"";position:absolute;inset:0;background: linear-gradient(0deg, rgba(0,0,0,0.45), rgba(0,0,0,0.1));pointer-events:none}
+.top-banner .overlay{position:absolute;left:16px;top:14px;z-index:2;filter:drop-shadow(0 4px 16px rgba(0,0,0,.55))}
+.top-banner h2{margin:0;font-size:19px;letter-spacing:.2px}
+.top-banner p{margin:4px 0 0;font-size:12px;opacity:.96}
+.title{margin:18px 0 10px;text-align:center;font-size:26px;color:var(--accent);text-shadow:0 8px 24px rgba(255,138,0,.08)}
+.card{position:relative;background:linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.02));border:1px solid rgba(255,255,255,.08);
+  border-radius:16px;padding:14px;margin-bottom:16px;box-shadow:0 18px 40px rgba(0,0,0,.45), inset 0 0 24px rgba(255,255,255,.02);
+  backdrop-filter: blur(8px);-webkit-backdrop-filter: blur(8px);animation: cardin .45s ease both}
+.row{display:flex;justify-content:space-between;align-items:center}
+.label{font-size:13px;color:var(--muted)} .value{font-weight:700}
+.input{display:flex;gap:8px;margin-top:10px}
+.input input{flex:1;padding:12px;border-radius:12px;border:1px solid rgba(255,255,255,.14);background:rgba(0,0,0,.25);color:#fff;outline:none;transition:border .2s, box-shadow .2s}
+.input input:focus{border-color:rgba(255,255,255,.28);box-shadow:0 0 0 4px rgba(255,255,255,.06)}
+.bottom-nav{position:fixed;left:50%;transform:translateX(-50%);bottom:14px;width:92%;max-width:480px;background:linear-gradient(180deg, rgba(255,255,255,.08), rgba(255,255,255,.02));
+  border:1px solid rgba(255,255,255,.1);border-radius:16px;padding:10px 12px;display:flex;justify-content:space-around;box-shadow:0 16px 40px rgba(0,0,0,.5);backdrop-filter: blur(10px)}
+.nav-btn{flex:1;text-align:center;padding:8px 8px;border-radius:12px;color:#d8cde7;font-size:12.5px;cursor:pointer;transition:background .2s, color .2s}
+.nav-btn:hover{background:rgba(255,255,255,.06)}
+.nav-btn.active{color:#ffe4c2;background:linear-gradient(90deg,rgba(255,138,0,.16),rgba(255,138,0,.08))}
+.nav-ico{display:block;margin:2px auto 6px}
+.page{display:none}.page.show{display:block;animation:pagefade .25s ease}
+@keyframes pagefade{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
+
+/* Sheet */
+.sheet-backdrop{position:fixed;inset:0;display:none;align-items:flex-end;justify-content:center;background:rgba(0,0,0,.45);z-index:90;opacity:0;transition:opacity .28s}
+.sheet-wrap{width:100%;max-width:480px;border-radius:18px 18px 0 0;border:1px solid rgba(255,255,255,.08);background:linear-gradient(180deg, rgba(28,15,31,.95), rgba(12,8,14,.98));
+  transform:translateY(120%);transition:transform .36s cubic-bezier(.2,.9,.2,1);box-shadow:0 -24px 60px rgba(0,0,0,.6);backdrop-filter: blur(10px)}
+.sheet-backdrop.show{display:flex;opacity:1}.sheet-wrap.open{transform:translateY(0)}
+.sheet{padding:16px} .sheet h3{margin:0 0 10px}
+.bug-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}
+.bug{padding:12px;border-radius:12px;border:1px solid rgba(255,255,255,.1);background:linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.02));cursor:pointer;transition:border .2s, transform .06s}
+.bug:hover{border-color:rgba(255,255,255,.25)} .bug:active{transform:translateY(1px)}
+.bug .top{display:flex;align-items:center;gap:6px}.dot{width:8px;height:8px;border-radius:50%;border:2px solid rgba(255,255,255,.18);margin-left:auto}
+.bug.selected{border-color:rgba(39,196,141,.4);box-shadow:0 8px 20px rgba(39,196,141,.09) inset}.bug.selected .dot{background:var(--success);border-color:rgba(39,196,141,.9)}
+.chip{font-size:12px;color:var(--muted)}
+
+/* Popup progress & blocker */
+.popup{position:fixed;left:50%;top:50%;transform:translate(-50%,-50%) scale(.9);width:min(88%,360px);background:rgba(8,8,12,.9);
+  border:1px solid rgba(255,255,255,.1);border-radius:16px;padding:16px;z-index:130;opacity:0;pointer-events:none;transition:opacity .25s,transform .25s;box-shadow:0 30px 70px rgba(0,0,0,.55);backdrop-filter: blur(8px)}
+.popup.show{opacity:1;transform:translate(-50%,-50%) scale(1);pointer-events:auto}
+.popup-row{display:flex;align-items:center;gap:12px}
+.ring{width:38px;height:38px;border-radius:50%;border:4px solid rgba(255,255,255,.12);border-top-color:var(--accent);animation:spin 1s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.check{width:38px;height:38px;border-radius:50%;display:flex;align-items:center;justify-content:center;background:var(--success);color:#06281b;font-weight:900;transform:scale(0);opacity:0;transition:transform .28s,opacity .28s}
+.check.show{transform:scale(1);opacity:1}
+.toast{position:fixed;left:50%;top:12px;transform:translateX(-50%);background:rgba(10,10,15,.85);padding:10px 14px;border-radius:12px;border:1px solid rgba(255,255,255,.12);z-index:140;opacity:1;transition:opacity .3s, transform .3s;box-shadow:0 18px 40px rgba(0,0,0,.45);backdrop-filter: blur(6px)}
+.progress-blocker{position: fixed; inset: 0; display: none; z-index: 125; background: rgba(0,0,0,0.28); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); opacity: 0; transition: opacity .25s ease}
+.progress-blocker.show{ display:block; opacity:1 }
+
+/* ====== GLITCH PHONK OVERLAY (4s, block input + fade in/out) ====== */
+.glitch-lock{ position:fixed; inset:0; z-index:9999; display:none; pointer-events:all; }
+.glitch-lock.show{ display:block; animation: glFade 4s ease-in-out forwards; }
+@keyframes glFade{
+  0%{ opacity:0 }
+  8%{ opacity:1 }          /* fade in cepat */
+  85%{ opacity:1 }         /* tahan */
+  100%{ opacity:0 }        /* fade out */
+}
+
+/* Vignette + CRT */
+.gl-vignette{
+  position:absolute; inset:-8px;
+  background: radial-gradient(ellipse at center, rgba(0,0,0,0) 40%, rgba(0,0,0,.35) 100%);
+  mix-blend-mode:multiply; pointer-events:none;
+}
+.gl-crt{
+  position:absolute; inset:0;
+  background:
+    linear-gradient(0deg, rgba(255,255,255,.06) 1px, transparent 1px);
+  background-size:100% 3px;
+  opacity:.35; animation: crtFlick 0.9s steps(2,end) infinite;
+}
+@keyframes crtFlick{ 50%{opacity:.22} }
+
+/* RGB split blur layer (phonk vibe) */
+.gl-rgb{
+  position:absolute; inset:-2px;
+  filter: contrast(1.2) saturate(1.2);
+  animation: rgbPhonk 0.8s steps(2,end) infinite;
+  background:
+    repeating-linear-gradient(90deg, rgba(255,0,90,.12) 0 4px, transparent 4px 8px),
+    repeating-linear-gradient(0deg, rgba(0,200,255,.08) 0 3px, transparent 3px 6px);
+  mix-blend-mode:screen; opacity:.85;
+}
+@keyframes rgbPhonk{
+  0%{ transform: translate(0,0) }
+  50%{ transform: translate(-2px,1px) }
+  100%{ transform: translate(1px,-1px) }
+}
+
+/* Noise film */
+.gl-noise{ position:absolute; inset:0; opacity:.35; }
+.gl-noise::before{
+  content:""; position:absolute; inset:0;
+  background-image:url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="140" height="140"><filter id="n"><feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="2" stitchTiles="stitch"/></filter><rect width="100%" height="100%" filter="url(%23n)" opacity="0.18"/></svg>');
+  background-size:140px 140px;
+  animation: noiseMove .35s steps(3,end) infinite;
+}
+@keyframes noiseMove{
+  0%{ transform:translate(0,0) }
+  50%{ transform:translate(-12px,8px) }
+  100%{ transform:translate(6px,-6px) }
+}
+
+/* Scanline bar */
+.gl-scan{
+  position:absolute; inset:0;
+  background:
+    linear-gradient( to bottom, transparent 0%, rgba(255,255,255,.18) 50%, transparent 100%);
+  background-size:100% 14%;
+  mix-blend-mode:overlay; opacity:.7;
+  animation: scanDown 1.05s linear infinite;
+}
+@keyframes scanDown{ 0%{ background-position:0 -120% } 100%{ background-position:0 220% } }
+
+/* Slice glitch (bar pecah2) */
+.gl-slices{ position:absolute; inset:0; overflow:hidden; }
+.gl-slice{
+  position:absolute; left:-2%; width:104%;
+  height:10%; background:rgba(255,255,255,.02);
+  mix-blend-mode:overlay; filter: blur(0.6px);
+  animation: sliceMove 1.2s infinite steps(2,end);
+  border-top:1px solid rgba(255,255,255,.06);
+  border-bottom:1px solid rgba(255,255,255,.06);
+}
+.gl-slice:nth-child(1){ top:8%;  animation-duration:.9s }
+.gl-slice:nth-child(2){ top:22%; animation-duration:1.3s }
+.gl-slice:nth-child(3){ top:38%; animation-duration:1.0s }
+.gl-slice:nth-child(4){ top:56%; animation-duration:1.4s }
+.gl-slice:nth-child(5){ top:74%; animation-duration:1.1s }
+@keyframes sliceMove{
+  0%{ transform:translateX(0) }
+  25%{ transform:translateX(-8px) }
+  50%{ transform:translateX(6px) }
+  75%{ transform:translateX(-3px) }
+  100%{ transform:translateX(0) }
+}
+
+/* Global shake ringan (ramps) */
+.gl-container{ position:absolute; inset:0; }
+.gl-container.phonk{
+  animation: phonkShake 1.2s infinite;
+}
+@keyframes phonkShake{
+  0%{ transform:translate(0,0) }
+  20%{ transform:translate(-1px,1px) rotate(.05deg) }
+  40%{ transform:translate(1px,-1px) rotate(-.05deg) }
+  60%{ transform:translate(-1px,-1px) rotate(.06deg) }
+  80%{ transform:translate(1px,1px) rotate(-.04deg) }
+  100%{ transform:translate(0,0) }
+}
+</style>
+</head>
+<body>
+
+<!-- ===== LOGIN VIEW ===== -->
+<div id="auth" class="auth-wrap">
+  <div class="auth-card">
+    <div class="auth-title">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none"><path d="M3 12L12 3l9 9-9 9-9-9z" stroke="currentColor"/></svg>
+      <h1>Masuk ke ARDS BUG</h1>
+    </div>
+    <p class="auth-sub">Masukkan <b>username</b></p>
+
+    <div class="auth-row">
+      <label for="authUser">Username</label>
+      <input id="authUser" type="text" placeholder="contoh: user" autocomplete="username" />
+    </div>
+    <div class="auth-row">
+      <label for="authPass">Password</label>
+      <input id="authPass" type="password" placeholder="password" autocomplete="current-password" />
+    </div>
+
+    <div class="auth-actions">
+      <button id="btnLogin" class="btn primary" type="button">Masuk</button>
+    </div>
+
+    <div id="authError" class="auth-error"></div>
+    <p class="auth-foot"><code>BELUM PUNYA? BELI LOL</code></p>
+  </div>
+</div>
+
+<!-- ===== LOADING VIEW (3 detik) ===== -->
+<div id="postLoading" class="loading-wrap">
+  <div class="loading-card">
+    <img class="loading-img" src="https://files.catbox.moe/75y814.jpg" alt="Loading">
+    <div class="loading-text">Memuat data akun…</div>
+    <div class="loading-sub">Harap tunggu sebentar</div>
+  </div>
+</div>
+
+<!-- ===== APP VIEW ===== -->
+<div class="app" id="appRoot">
+  <div class="top-banner" id="banner">
+    <img src="https://files.catbox.moe/u301ba.gif" class="banner-img" id="bannerImg" alt="banner">
+    <div class="overlay">
+      <h2>ARDS BUG</h2>
+      <p>Ards versi 12 — Account Overview</p>
+    </div>
+  </div>
+
+  <div class="title">Account Overview</div>
+  <div class="card">
+    <div class="row"><div class="label">Username</div><div class="value" id="usernameValue">—</div></div>
+    <div class="row" style="gap:8px;align-items:center">
+      <div class="label">Status</div>
+      <div class="value" id="statusText" style="margin-left:auto">Expired: Invalid Date</div>
+      <button id="btnLogout" class="btn" type="button" style="padding:8px 10px;font-weight:700;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.12);color:#e6dcf3">Keluar</button>
+    </div>
+  </div>
+
+  <!-- PAGES -->
+  <div id="page-home" class="page show">
+    <div class="card"><div class="label">Selamat datang</div><div class="value" style="margin-top:6px">ARDS V12 , BUILDER BY : @ARDSDEV</div></div>
+  </div>
+
+  <div id="page-attack" class="page">
+    <div class="card">
+      <div class="label">Bug WhatsApp </div>
+      <div class="input">
+        <input id="waTarget" placeholder="Nomor target (62812…)" inputmode="tel"/>
+        <button class="btn primary" id="btnSheetAttack" type="button">Pilih Bug</button>
+      </div>
+      <div class="label" style="margin-top:8px">Nomor target wajib diisi.</div>
+    </div>
+  </div>
+
+  <div id="page-doxing" class="page">
+    <div class="card">
+      <div class="label">Doxing </div>
+      <div class="input">
+        <input id="doxName" placeholder="Nama"/>
+        <button class="btn primary" id="btnSheetDox" type="button">Cari</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="page-ip" class="page">
+    <div class="card">
+      <div class="label">IP Tools </div>
+      <div class="input">
+        <input id="ipTarget" placeholder="IP/Domain"/>
+        <button class="btn primary" id="btnSheetIP" type="button">Scan</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- SHEET -->
+  <div class="sheet-backdrop" id="backdrop" aria-hidden="true">
+    <div class="sheet-wrap" id="sheetWrap">
+      <div class="sheet" id="sheet"></div>
+    </div>
+  </div>
+
+  <!-- OVERLAY BLUR untuk progres -->
+  <div class="progress-blocker" id="progressBlocker" aria-hidden="true"></div>
+
+  <!-- POPUP PROGRESS -->
+  <div class="popup" id="popup">
+    <div class="popup-row">
+      <div class="ring" id="popupRing"></div>
+      <div class="check" id="popupCheck">✓</div>
+      <div>
+        <div class="popup-title" id="popupTitle">PROGRES</div>
+        <div class="popup-sub" id="popupSub">Menyiapkan…</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- NAV -->
+  <div class="bottom-nav">
+    <div class="nav-btn active" data-target="home">
+      <svg class="nav-ico" width="22" height="22" viewBox="0 0 24 24" fill="none"><path d="M3 11.5L12 4l9 7.5V20a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1V11.5z" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      Home
+    </div>
+    <div class="nav-btn" data-target="attack">
+      <svg class="nav-ico" width="22" height="22" viewBox="0 0 24 24" fill="none"><path d="M12 2v20M2 12h20" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      Attack
+    </div>
+    <div class="nav-btn" data-target="doxing">
+      <svg class="nav-ico" width="22" height="22" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="9" r="3" stroke="currentColor" stroke-width="1.2"/><path d="M5.5 20a6.5 6.5 0 0 1 13 0" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/></svg>
+      Doxing
+    </div>
+    <div class="nav-btn" data-target="ip">
+      <svg class="nav-ico" width="22" height="22" viewBox="0 0 24 24" fill="none"><path d="M3 7h6l3 6 3-6h6" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      IP
+    </div>
+  </div>
+</div>
+
+<!-- ===== PHONK GLITCH OVERLAY ===== -->
+<div id="glitchLock" class="glitch-lock" aria-hidden="true">
+  <div class="gl-container phonk">
+    <div class="gl-vignette"></div>
+    <div class="gl-crt"></div>
+    <div class="gl-rgb"></div>
+    <div class="gl-noise"></div>
+    <div class="gl-scan"></div>
+    <div class="gl-slices">
+      <div class="gl-slice"></div>
+      <div class="gl-slice"></div>
+      <div class="gl-slice"></div>
+      <div class="gl-slice"></div>
+      <div class="gl-slice"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== AUDIO (loop phonk) ===== -->
+<audio id="bgm" src="https://files.catbox.moe/h8wwwg.m4a" loop preload="auto"></audio>
+
+<script>
+/* ====== AUDIO: start di klik "Masuk", fade in saat app tampil ====== */
+const bgm = document.getElementById('bgm');
+let bgmArmed = false; // sudah di-play (unlock) oleh gesture?
+let bgmTargetVol = 0.6;  // volume akhir
+let bgmFadeTimer = null;
+
+function armBgmPlay(){
+  if(bgmArmed) return;
+  try{
+    bgm.volume = 0.0;      // mulai silent
+    bgm.play().then(()=>{ bgmArmed = true; })
+    .catch(()=>{ // kalau gagal, aktifkan fallback klik body
+      document.body.addEventListener('click', ()=>{ if(!bgmArmed){ bgm.play().then(()=>bgmArmed=true); } }, {once:true});
+    });
+  }catch(e){}
+}
+function fadeBgm(to=bgmTargetVol, ms=1500){
+  if(!bgmArmed) return;
+  clearInterval(bgmFadeTimer);
+  const steps = 30, inc = (to - bgm.volume)/steps, iv = ms/steps;
+  bgmFadeTimer = setInterval(()=>{
+    let v = Math.max(0, Math.min(1, bgm.volume + inc));
+    bgm.volume = v;
+    if((inc>0 && v>=to-0.01) || (inc<0 && v<=to+0.01)){
+      bgm.volume = to; clearInterval(bgmFadeTimer);
+    }
+  }, iv);
+}
+
+/* ====== GLITCH: 4 detik, block input, fade in/out ====== */
+const appRoot = document.getElementById('appRoot');
+const glitch = document.getElementById('glitchLock');
+
+function runGlitch(ms=4000){
+  glitch.classList.add('show');
+  document.body.classList.add('lock');
+  appRoot && appRoot.setAttribute('inert','');
+  // optional: kecilkan volume sedikit di awal glitch, lalu naik lagi (phonk vibe)
+  if(bgmArmed){ bgm.volume = Math.min(bgm.volume, 0.35); fadeBgm(bgmTargetVol, 1200); }
+  setTimeout(()=>{
+    glitch.classList.remove('show');
+    document.body.classList.remove('lock');
+    appRoot && appRoot.removeAttribute('inert');
+  }, ms);
+}
+
+/* ====== DEMO FLOW: Login → Loading 3s → App + Glitch 4s ====== */
+/* Kalau kamu punya auth asli, cukup panggil:
+   - showLoading(); setelah sukses login
+   - showApp(); lalu runGlitch();
+   - armBgmPlay(); dipanggil saat klik login
+   - fadeBgm(0.6, 1500); saat app tampil
+*/
+const authView = document.getElementById('auth');
+const loadingView = document.getElementById('postLoading');
+
+document.getElementById('btnLogin').addEventListener('click', ()=>{
+  // unlock audio oleh gesture user
+  armBgmPlay();
+
+  authView.style.display='none';
+  loadingView.style.display='flex';
+
+  setTimeout(()=>{
+    loadingView.style.display='none';
+    appRoot.style.display='block';
+    // phonk glitch 4 detik
+    runGlitch(4000);
+    // fade in volume setelah app tampil
+    setTimeout(()=>fadeBgm(bgmTargetVol, 1500), 150);
+  }, 3000);
+});
+
+/* ====== Basic NAV demo ====== */
+document.querySelectorAll('.nav-btn').forEach(b=>{
+  b.addEventListener('click', ()=>{
+    const target = b.dataset.target;
+    document.querySelectorAll('.page').forEach(p=>p.classList.remove('show'));
+    document.getElementById('page-'+target).classList.add('show');
+    document.querySelectorAll('.nav-btn').forEach(x=>x.classList.remove('active'));
+    b.classList.add('active');
+    window.scrollTo({top:0,behavior:'smooth'});
+  });
+});
+
+/* Blok klik kanan */
+  document.addEventListener("contextmenu", e => e.preventDefault());
+
+  /* Blok CTRL+C, CTRL+X, CTRL+S, CTRL+U, CTRL+Shift+I (view source & devtools) */
+  document.addEventListener("keydown", e => {
+    if (
+      (e.ctrlKey && ["c","x","s","u"].includes(e.key.toLowerCase())) ||
+      (e.ctrlKey && e.shiftKey && e.key.toLowerCase() === "i")
+    ) {
+      e.preventDefault();
+      return false;
+    }
+  });
+
+  /* Blok drag select */
+  document.addEventListener("dragstart", e => e.preventDefault());
+</script>
+</body>
+</html>
